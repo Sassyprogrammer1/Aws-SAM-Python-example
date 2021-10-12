@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Function and API for scheduling events 
+
+Globals:
+  Function:
+    Environment:
+      Variables:
+        dynamoDbTable: test_devices_table
+        s3Bucket: project-intro-bucket-2
+        awsRegion: us-west-2
+        secretName: faketoken
+
+Resources:
+  ScheduleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: schedule/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Timeout: 6
+      Events:
+         Schedule:
+           Type: Api
+           Properties:
+             Path: /schedule
+             Method: POST
+      Policies:
+      # Give DynamoDB Full Access to your Lambda Function
+      - AmazonDynamoDBFullAccess
+      - Statement:
+        - Sid: SSMDescribeParametersPolicy
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource: '*'
+        - Sid: S3PUTOBJECT
+          Effect: Allow
+          Action:
+          - s3:PutObject
+          Resource: '*'
+             
+Outputs:
+  ScheduleApi:
+    Description: "API Gateway endpoint URL for dev stage for Schedule function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/schedule/"
+  ScheduleFunction:
+    Description: "Schedule Lambda Function ARN"
+    Value: !GetAtt ScheduleFunction.Arn
+  ScheduleFunctionIamRole:
+    Description: "Implicit IAM Role created for Schedule function"
+    Value: !GetAtt ScheduleFunctionRole.Arn

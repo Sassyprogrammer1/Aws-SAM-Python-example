@@ -1,0 +1,22 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "scheduleDevices"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1u1mgwr58vss7"
+s3_prefix = "scheduleDevices"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+
+[dev]
+[dev.deploy]
+[dev.deploy.parameters]
+stack_name = "scheduleApi"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1u1mgwr58vss7"
+s3_prefix = "scheduleApi"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

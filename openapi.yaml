@@ -1,0 +1,72 @@
+openapi: 3.0.1
+info:
+  title: Schedule Api
+  version: 1.0.0
+tags:
+- name: schedule
+  description: schedule endpoints
+paths:
+  /schedule:
+    post:
+      tags:
+      - schedule
+      summary: schedule device operations according to UTC time from localtime if schedule time does not intersect with opt out times.
+      operationId: scheduleDeviceOff
+      requestBody:
+        description: Pet object that needs to be added to the store
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  format: url
+                devId:
+                  type: string
+                startAt:
+                  type: string
+                interval:
+                  type: array
+                  items: {}
+                maxWh: 
+                  type: array
+                  items: {}
+            example:
+                  "type": "limit"
+                  "devId": "001234"
+                  "startAt": "21/09/23 05:34:00"
+                  "interval": [900,900,900,900]
+                  "maxWh": [0,0,0,0]      
+        required: true
+      responses:
+        200:
+          description: device was scheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  devId:
+                    type: string
+                  startAt:
+                    type: string
+                  interval:
+                    type: array
+                    items: {}
+                  maxWh: 
+                    type: array
+                    items: {}
+              example:
+                  "type": "limit"
+                  "devId": "001234"
+                  "startAt": "2021-09-23T15:34:00+00:00"
+                  "interval": [900,900,900,1111]
+                  "maxWh": [0,0,0,0]
+              
+        400:
+          description: device is opt out
+        502:
+          description: internal server error
