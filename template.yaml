@@ -26,7 +26,6 @@ Resources:
              Path: /schedule
              Method: POST
       Policies:
-      # Give DynamoDB Full Access to your Lambda Function
       - AmazonDynamoDBFullAccess
       - Statement:
         - Sid: SSMDescribeParametersPolicy
