@@ -5,6 +5,7 @@ info:
 tags:
 - name: schedule
   description: schedule endpoints
+  baseUrl: https://ro53ms56m6.execute-api.us-west-2.amazonaws.com/Prod/
 paths:
   /schedule:
     post:

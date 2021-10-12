@@ -2,9 +2,9 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "scheduleDevices"
+stack_name = "scheduleApis"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1u1mgwr58vss7"
-s3_prefix = "scheduleDevices"
+s3_prefix = "scheduleApis"
 region = "us-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"

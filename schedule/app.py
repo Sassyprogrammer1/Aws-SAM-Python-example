@@ -162,15 +162,16 @@ def lambda_handler(event, context):
             }
             # write response to s3 file
             write_to_s3(result, device_id, token)
-            resp = requests.post(
+            try:
+                requests.post(
                 'https://hooks.slack.com/services/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', 
                 json={"text":"Schedule for device %s"%device_id}, 
                 headers = {'Content-Type': 'application/json'}
             )
-            print(resp)
-            # s3_reponse = write_to_s3(result, device_id)
-            # print(s3_reponse)
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"message": result})
-            }
+            except requests.exceptions.RequestException as e:  # This is the correct syntax
+                raise SystemExit(e)
+            else:
+                return {
+                    "statusCode": 200,
+                    "body": json.dumps({"message": result})
+                }
