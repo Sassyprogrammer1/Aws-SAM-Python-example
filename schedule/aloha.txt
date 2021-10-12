@@ -1,1 +1,0 @@
-{"Header": {"Authorization": "token1234"}, "Body": {"type": "limit", "devId": "001234", "startAt": "2021-09-24T04:00:00+00:00", "interval": [900, 900, 900, 900, 900, 900, 900, 1345], "maxWh": [0, 0, 0, 0, 0, 0, 0, 0]}}

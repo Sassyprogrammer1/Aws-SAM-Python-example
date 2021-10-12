@@ -8,12 +8,13 @@ import datetime
 import pytz
 import random
 
+# get env variables
 table_name =os.getenv('dynamoDbTable')
 s3_bucket = os.getenv('s3Bucket')
 region = os.getenv('awsRegion')
 secret_name = os.getenv('secretName')
 
-
+# get secret from ssm
 def get_secret():
     # Create a Secrets Manager client
     session = boto3.session.Session()
@@ -36,7 +37,7 @@ def convert_to_UTC(timezone, date_time):
     utc_datetime = local_datetime.astimezone(pytz.utc)
     return utc_datetime
 
-# scan objects from dynamodb 
+# scan object from dynamodb 
 def scan_objects():
     dynamodb = boto3.resource('dynamodb', region_name=region)
     table = dynamodb.Table(table_name)
@@ -50,8 +51,6 @@ def scan_objects():
 
 # write file to s3
 def write_to_s3(json_object, file_name, token):
-    # print(params)
-    #session = boto3.Session(aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key)
     s3 = boto3.resource('s3')
     object = s3.Object(s3_bucket, "%s.json"%file_name)
     s3_object = json.dumps({"Header": {"Authorization":token},"Body": json_object}, default=str)
@@ -71,10 +70,6 @@ def timeDiff(t1, t2):
 
 # calculate the total intervals and randomize the last schedule
 def randomize(intervals):
-    # time_difference = timeDiff(local_start_opt_out, local_end_opt_out)
-    # seconds = time_difference.total_seconds()
-    # max_intervals = seconds / 900
-    # intervals = [900] * int(max_intervals)
     randomize_interval = intervals[len(intervals) - 1]
     random_number = randomize_interval + random.randint(0, 600)
     intervals[len(intervals) - 1] = random_number
@@ -86,6 +81,7 @@ def end_time(date_time, time_to_add):
     UTC_end_time = date_time + hours_added
     return UTC_end_time    
 
+# extract hours and minutes from the dateTime
 def extract_hours_minutes(date_time):
     hour = str(date_time.hour)
     minute = str(date_time.minute)
@@ -94,12 +90,19 @@ def extract_hours_minutes(date_time):
     zero_filled_time = zero_filled_hour+':'+zero_filled_minute
     return zero_filled_time
 
+# add hours into dateTime
 def add_hours(hours):
     return datetime.timedelta(hours = hours)
 
 
+# Main Lamdba function
 def lambda_handler(event, context):
-    # parse local_dateTime, type and devId from the request body
+    # parse local_dateTime, 
+    # type, 
+    # devId, 
+    # startAt, 
+    # interval, 
+    # and maxWh from request body
     event = json.loads(event['body'])     
     type = event['type']
     dev_id = event['devId']
@@ -107,16 +110,18 @@ def lambda_handler(event, context):
     interval = event['interval']
     maxWh = event['maxWh']
 
+    # check token 
     secret = get_secret()
     params = json.loads(secret['SecretString'])
     print(params)
     token = params['fakeToken']
     if token:
-        # params = get_secret()
-        # print(params)
         # call the scan function and return records
         response = scan_objects()
-        # parse device_id, timezone, local_start_opt_out, local_end_opt_out 
+        # parse device_id, 
+        # timezone, 
+        # local_start_opt_out, 
+        # local_end_opt_out 
         # from the dynamodb object
         device_id = response['Items'][0]['device_id']
         timezone = response['Items'][0]['timezone']
@@ -140,7 +145,7 @@ def lambda_handler(event, context):
         print(extract_hours_minutes_start)
         extract_hours_minutes_end = extract_hours_minutes(UTC_end_time)
         print(extract_hours_minutes_end)
-        #exclude edge case
+        #exclude if opt_out_time in actual time range
         if(extract_hours_minutes_start <= local_end_opt_out and extract_hours_minutes_end >= local_start_opt_out):
             return{
                 "statusCode": 200,
@@ -156,9 +161,12 @@ def lambda_handler(event, context):
                 "maxWh": maxWh
             }
             # write response to s3 file
-            s3_reponse = write_to_s3(result, device_id, token)
-            print(s3_reponse)
-            resp = requests.post('https://hooks.slack.com/services/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', json={"text":"Schedule for device %s"%device_id}, headers = {'Content-Type': 'application/json'})
+            write_to_s3(result, device_id, token)
+            resp = requests.post(
+                'https://hooks.slack.com/services/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', 
+                json={"text":"Schedule for device %s"%device_id}, 
+                headers = {'Content-Type': 'application/json'}
+            )
             print(resp)
             # s3_reponse = write_to_s3(result, device_id)
             # print(s3_reponse)
